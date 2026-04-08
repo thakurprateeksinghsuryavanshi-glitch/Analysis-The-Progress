@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SRMU × IBM — Academic Performance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Serif:ital,wght@0,600;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   SRMU × IBM ACADEMIC DASHBOARD
+   Made by Prateek Singh | Roll: 202410101360128
+   ═══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ibm-blue:#0f62fe;--ibm-blue-hover:#0043ce;--ibm-blue-light:#4589ff;
+  --ibm-cyan:#1192e8;--ibm-teal:#009d9a;--ibm-green:#24a148;
+  --ibm-yellow:#f1c21b;--ibm-orange:#ff832b;--ibm-red:#da1e28;
+  --ibm-purple:#8a3ffc;--ibm-pink:#ee5396;
+  --g100:#161616;--g90:#262626;--g80:#393939;--g70:#525252;
+  --g60:#6f6f6f;--g50:#8d8d8d;--g40:#a8a8a8;--g30:#c6c6c6;
+  --g20:#e0e0e0;--g10:#f4f4f4;--white:#ffffff;
+  --text-primary:#f4f4f4;--text-secondary:#c6c6c6;--text-placeholder:#6f6f6f;
+  --ui-bg:#161616;--ui-01:#262626;--ui-02:#393939;--ui-03:#525252;
+  --border-subtle:#393939;--border-strong:#6f6f6f;
+  --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --serif:'IBM Plex Serif',serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--ui-bg);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--g90)}
+::-webkit-scrollbar-thumb{background:var(--g70);border-radius:2px}
+
+/* ═══════════ INTRO SCREEN ═══════════ */
+#intro{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--g100);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 0.8s ease,transform 0.8s ease;
+}
+#intro.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+.intro-bg{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.intro-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(15,98,254,0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(15,98,254,0.06) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gridSlide 20s linear infinite;
+}
+@keyframes gridSlide{from{transform:translate(0,0)}to{transform:translate(48px,48px)}}
+.intro-glow-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(15,98,254,0.12) 0%,transparent 70%);top:-100px;left:-100px;animation:pulse1 6s ease-in-out infinite}
+.intro-glow-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,157,154,0.10) 0%,transparent 70%);bottom:-80px;right:-80px;animation:pulse2 8s ease-in-out infinite}
+@keyframes pulse1{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.2);opacity:1}}
+@keyframes pulse2{0%,100%{transform:scale(1.1);opacity:0.5}50%{transform:scale(0.9);opacity:0.9}}
+
+.intro-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;max-width:700px;text-align:center;padding:40px 24px;
+}
+.intro-logos{
+  display:flex;align-items:center;justify-content:center;
+  gap:32px;margin-bottom:40px;
+  animation:fadeUp 0.8s ease 0.2s both;
+}
+.intro-logo-box{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.logo-srmu{
+  width:90px;height:90px;border-radius:16px;
+  background:linear-gradient(135deg,#003087 0%,#0044cc 50%,#0055ff 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 8px 32px rgba(15,98,254,0.4);
+  border:2px solid rgba(15,98,254,0.4);
+  position:relative;overflow:hidden;
+}
+.logo-srmu::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.08));
+}
+.logo-srmu-text{font-family:var(--serif);font-size:22px;font-weight:600;color:#fff;letter-spacing:2px;z-index:1}
+.logo-srmu-sub{font-size:7px;color:rgba(255,255,255,0.7);letter-spacing:1.5px;z-index:1;margin-top:2px;font-family:var(--mono)}
+
+.logo-ibm{
+  width:90px;height:90px;border-radius:16px;
+  background:#161616;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  border:2px solid var(--g70);
+}
+.ibm-stripes{display:flex;flex-direction:column;gap:3px}
+.ibm-stripe{height:6px;border-radius:1px;background:#1192e8}
+.ibm-stripe:nth-child(1){width:52px}
+.ibm-stripe:nth-child(2){width:52px}
+.ibm-stripe:nth-child(3){width:40px;margin-left:6px;margin-right:6px}
+.ibm-stripe:nth-child(4){width:40px;margin-left:6px;margin-right:6px}
+.ibm-stripe:nth-child(5){width:52px}
+.ibm-stripe:nth-child(6){width:52px}
+.ibm-stripe:nth-child(7){width:40px;margin-left:6px;margin-right:6px}
+.ibm-stripe:nth-child(8){width:52px}
+
+.intro-logo-label{font-size:11px;color:var(--text-secondary);font-family:var(--mono);letter-spacing:1px}
+
+.intro-divider{
+  width:1px;height:60px;
+  background:linear-gradient(to bottom,transparent,var(--g70),transparent);
+  margin:0 8px;
+}
+
+.intro-badge{
+  background:linear-gradient(90deg,var(--ibm-blue),var(--ibm-cyan));
+  color:#fff;font-size:10px;font-weight:600;padding:4px 14px;border-radius:20px;
+  letter-spacing:2px;font-family:var(--mono);margin-bottom:20px;
+  animation:fadeUp 0.8s ease 0.4s both;
+}
+.intro-title{
+  font-family:var(--serif);
+  font-size:clamp(28px,5vw,48px);
+  font-weight:600;line-height:1.15;
+  color:var(--text-primary);
+  margin-bottom:8px;
+  animation:fadeUp 0.8s ease 0.5s both;
+}
+.intro-title span{
+  background:linear-gradient(90deg,var(--ibm-blue-light),var(--ibm-cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.intro-sub{
+  font-size:15px;color:var(--text-secondary);line-height:1.6;
+  margin-bottom:36px;
+  animation:fadeUp 0.8s ease 0.6s both;
+}
+.intro-meta{
+  display:flex;flex-wrap:wrap;gap:16px;justify-content:center;
+  margin-bottom:40px;
+  animation:fadeUp 0.8s ease 0.7s both;
+}
+.meta-chip{
+  background:var(--g90);border:1px solid var(--g80);
+  border-radius:8px;padding:8px 16px;font-size:12px;
+  color:var(--text-secondary);font-family:var(--mono);
+}
+.meta-chip strong{color:var(--text-primary);display:block;font-size:11px;margin-bottom:2px}
+
+.intro-btn{
+  background:var(--ibm-blue);color:#fff;
+  border:none;padding:16px 48px;font-family:var(--font);
+  font-size:16px;font-weight:600;cursor:pointer;border-radius:0;
+  letter-spacing:0.5px;position:relative;overflow:hidden;
+  transition:background 0.2s;
+  animation:fadeUp 0.8s ease 0.8s both;
+  clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));
+}
+.intro-btn:hover{background:var(--ibm-blue-hover)}
+.intro-btn::after{
+  content:'';position:absolute;
+  bottom:0;right:0;width:20px;height:20px;
+  background:var(--ibm-blue-hover);
+  clip-path:polygon(100% 0,100% 100%,0 100%);
+  transition:background 0.2s;
+}
+.intro-btn:hover::after{background:var(--ibm-blue-hover)}
+.intro-progress{
+  width:200px;height:2px;background:var(--g80);margin-top:24px;border-radius:1px;
+  animation:fadeUp 0.8s ease 0.9s both;overflow:hidden;
+}
+.intro-progress-bar{
+  height:100%;background:linear-gradient(90deg,var(--ibm-blue),var(--ibm-cyan));
+  border-radius:1px;animation:loadBar 2s ease 1s forwards;width:0;
+}
+@keyframes loadBar{to{width:100%}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════ MAIN APP ═══════════ */
+#app{display:none}
+#app.show{display:block;animation:fadeIn 0.6s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── HEADER ── */
+.header{
+  background:var(--g100);
+  border-bottom:1px solid var(--g80);
+  position:sticky;top:0;z-index:100;
+}
+.header-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:48px;
+  border-bottom:1px solid var(--g90);
+}
+.header-logos{display:flex;align-items:center;gap:16px}
+.h-logo-srmu{
+  display:flex;align-items:center;gap:8px;
+  text-decoration:none;
+}
+.h-srmu-badge{
+  width:32px;height:32px;border-radius:6px;
+  background:linear-gradient(135deg,#003087,#0f62fe);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:11px;font-weight:700;color:#fff;
+  letter-spacing:1px;flex-shrink:0;
+}
+.h-srmu-name{font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.2}
+.h-srmu-dept{font-size:10px;color:var(--text-secondary);font-family:var(--mono)}
+.h-sep{width:1px;height:28px;background:var(--g70)}
+.h-ibm{display:flex;align-items:center;gap:6px}
+.h-ibm-stripes{display:flex;flex-direction:column;gap:1.5px}
+.h-ibm-s{height:3px;background:var(--ibm-cyan);border-radius:0.5px}
+.h-ibm-s:nth-child(1){width:26px}
+.h-ibm-s:nth-child(2){width:26px}
+.h-ibm-s:nth-child(3){width:20px;margin:0 3px}
+.h-ibm-s:nth-child(4){width:20px;margin:0 3px}
+.h-ibm-s:nth-child(5){width:26px}
+.h-ibm-s:nth-child(6){width:26px}
+.h-ibm-s:nth-child(7){width:20px;margin:0 3px}
+.h-ibm-s:nth-child(8){width:26px}
+.h-ibm-label{font-family:var(--mono);font-size:9px;color:var(--text-secondary);letter-spacing:1.5px}
+.header-actions{display:flex;gap:8px;align-items:center}
+
+/* ── NAV TABS ── */
+.nav{
+  display:flex;padding:0 24px;background:var(--g100);
+  border-bottom:1px solid var(--g80);overflow-x:auto;
+}
+.nav-tab{
+  background:none;border:none;color:var(--text-secondary);
+  padding:12px 20px;font-family:var(--font);font-size:13px;
+  font-weight:500;cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all 0.15s;display:flex;align-items:center;gap:6px;
+}
+.nav-tab:hover{color:var(--text-primary);background:var(--g90)}
+.nav-tab.active{color:var(--ibm-blue-light);border-bottom-color:var(--ibm-blue)}
+
+/* ── BUTTONS ── */
+.btn{
+  padding:8px 16px;border:1px solid transparent;
+  font-family:var(--font);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;
+  white-space:nowrap;border-radius:0;
+}
+.btn-primary{background:var(--ibm-blue);color:#fff;border-color:var(--ibm-blue)}
+.btn-primary:hover{background:var(--ibm-blue-hover);border-color:var(--ibm-blue-hover)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border-color:var(--g70)}
+.btn-ghost:hover{background:var(--g90);color:var(--text-primary)}
+.btn-danger{background:var(--ibm-red);color:#fff;border-color:var(--ibm-red)}
+.btn-danger:hover{background:#b81922}
+.btn-success{background:var(--ibm-green);color:#fff;border-color:var(--ibm-green)}
+.btn-success:hover{background:#1a7a38}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+/* ── LAYOUT ── */
+.page{display:none;padding:24px;max-width:1400px;margin:0 auto}
+.page.active{display:block;animation:fadeIn 0.3s ease}
+.row{display:grid;gap:16px;margin-bottom:16px}
+.row-2{grid-template-columns:1fr 1fr}
+.row-3{grid-template-columns:1fr 1fr 1fr}
+.row-4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:1100px){.row-4{grid-template-columns:1fr 1fr}.row-3{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.row-2,.row-3,.row-4{grid-template-columns:1fr}}
+
+/* ── PANEL ── */
+.panel{
+  background:var(--g90);
+  border:1px solid var(--g80);
+  padding:20px;
+}
+.panel-title{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+  padding-bottom:12px;border-bottom:1px solid var(--g80);
+}
+.panel-title .icon{font-size:16px}
+.panel-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.panel-row .panel-title{margin-bottom:0;border-bottom:none;padding-bottom:0}
+
+/* ── KPI ── */
+.kpi{
+  background:var(--g90);border:1px solid var(--g80);
+  padding:20px;position:relative;overflow:hidden;
+  transition:border-color 0.2s;
+}
+.kpi:hover{border-color:var(--ibm-blue)}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.kpi.blue::before{background:var(--ibm-blue)}
+.kpi.cyan::before{background:var(--ibm-cyan)}
+.kpi.green::before{background:var(--ibm-green)}
+.kpi.yellow::before{background:var(--ibm-yellow)}
+.kpi.red::before{background:var(--ibm-red)}
+.kpi.purple::before{background:var(--ibm-purple)}
+.kpi-label{font-size:11px;color:var(--text-secondary);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-size:36px;font-weight:700;font-family:var(--mono);color:var(--text-primary);line-height:1}
+.kpi-sub{font-size:11px;color:var(--text-secondary);margin-top:6px}
+.kpi-change{font-size:11px;margin-top:4px}
+.kpi-change.up{color:var(--ibm-green)}
+.kpi-change.down{color:var(--ibm-red)}
+
+/* ── INPUTS ── */
+.input{
+  background:var(--g80);border:1px solid var(--g70);
+  color:var(--text-primary);padding:9px 14px;
+  font-family:var(--font);font-size:13px;outline:none;
+  transition:border-color 0.15s;border-radius:0;width:100%;
+}
+.input:focus{border-color:var(--ibm-blue);background:var(--g90)}
+.select{
+  background:var(--g80);border:1px solid var(--g70);
+  color:var(--text-primary);padding:9px 14px;
+  font-family:var(--font);font-size:13px;outline:none;
+  cursor:pointer;min-width:220px;border-radius:0;
+}
+.select:focus{border-color:var(--ibm-blue)}
+
+/* ── DROPZONE ── */
+.dropzone{
+  border:2px dashed var(--g70);padding:48px 24px;
+  text-align:center;cursor:pointer;transition:all 0.2s;
+  background:var(--g100);
+}
+.dropzone:hover,.dropzone.over{border-color:var(--ibm-blue);background:rgba(15,98,254,0.04)}
+.dz-icon{font-size:48px;margin-bottom:12px;display:block}
+.dz-text{color:var(--text-secondary);font-size:14px;margin-bottom:8px}
+.dz-hint{font-size:11px;color:var(--text-placeholder);font-family:var(--mono)}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{
+  background:var(--g80);color:var(--text-secondary);
+  padding:10px 12px;text-align:center;font-weight:600;
+  border-bottom:1px solid var(--g70);white-space:nowrap;font-size:11px;
+  font-family:var(--mono);letter-spacing:0.5px;position:sticky;top:0;z-index:1;
+}
+.tbl td{
+  padding:8px 10px;border-bottom:1px solid var(--g80);
+  text-align:center;vertical-align:middle;
+}
+.tbl tr:hover td{background:rgba(15,98,254,0.04)}
+.tbl td:first-child,.tbl td:nth-child(2){text-align:left}
+.tbl input{
+  background:var(--g80);border:1px solid var(--g70);
+  color:var(--text-primary);padding:5px 8px;
+  font-family:var(--mono);font-size:11px;width:100%;
+  outline:none;min-width:55px;transition:border-color 0.15s;border-radius:0;
+}
+.tbl input:focus{border-color:var(--ibm-blue)}
+.max{font-size:9px;color:var(--text-placeholder);font-weight:400;display:block}
+
+/* ── GRADE TAGS ── */
+.tag{padding:2px 8px;font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:0.5px}
+.tag-O{background:rgba(36,161,72,0.15);color:#42be65}
+.tag-Ap{background:rgba(17,146,232,0.15);color:#33b1ff}
+.tag-A{background:rgba(15,98,254,0.15);color:#4589ff}
+.tag-Bp{background:rgba(138,63,252,0.15);color:#a56eff}
+.tag-B{background:rgba(238,83,150,0.15);color:#ee5396}
+.tag-C{background:rgba(241,194,27,0.15);color:#f1c21b}
+.tag-F{background:rgba(218,30,40,0.15);color:#ff8389}
+
+/* ── CHART CARDS ── */
+.chart-panel{background:var(--g90);border:1px solid var(--g80);padding:20px}
+.chart-panel canvas{max-height:260px}
+
+/* ── PREDICTION ── */
+.pred-hero{
+  background:linear-gradient(135deg,var(--g90) 0%,#1a2035 100%);
+  border:1px solid var(--g80);padding:32px;margin-bottom:16px;
+  display:flex;align-items:center;gap:48px;flex-wrap:wrap;
+  position:relative;overflow:hidden;
+}
+.pred-hero::before{
+  content:'';position:absolute;right:-80px;top:-80px;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(15,98,254,0.08),transparent 70%);
+}
+.pred-cgpa-block{text-align:center;min-width:160px}
+.pred-lbl{font-size:10px;color:var(--text-secondary);font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.pred-num{
+  font-family:var(--mono);font-size:72px;font-weight:700;line-height:1;
+  background:linear-gradient(135deg,var(--ibm-blue-light),var(--ibm-cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.pred-grade-tag{
+  display:inline-block;margin-top:10px;padding:4px 16px;
+  background:rgba(36,161,72,0.15);color:#42be65;
+  font-family:var(--mono);font-size:13px;font-weight:700;
+}
+.pred-bar-block{flex:1;min-width:260px}
+.pred-bar-label{font-size:12px;color:var(--text-secondary);margin-bottom:10px;font-family:var(--mono)}
+.pred-track{background:var(--g80);height:12px;overflow:hidden;margin-bottom:8px}
+.pred-fill{height:100%;background:linear-gradient(90deg,var(--ibm-blue),var(--ibm-cyan));transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0}
+.pred-pct{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text-primary)}
+
+/* ── FOCUS CARDS ── */
+.focus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.focus-card{padding:16px;border-left:4px solid;background:var(--g90)}
+.focus-card.high{border-color:var(--ibm-red);background:rgba(218,30,40,0.05)}
+.focus-card.med{border-color:var(--ibm-yellow);background:rgba(241,194,27,0.05)}
+.focus-card.ok{border-color:var(--ibm-green);background:rgba(36,161,72,0.05)}
+.focus-subj{font-weight:600;font-size:14px;margin-bottom:4px}
+.focus-msg{font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px}
+.focus-stat{font-size:11px;font-family:var(--mono);color:var(--text-secondary)}
+.focus-badge{
+  display:inline-block;padding:2px 8px;font-size:9px;
+  font-family:var(--mono);font-weight:700;letter-spacing:1px;margin-top:6px;
+}
+.focus-badge.high{background:rgba(218,30,40,0.2);color:#ff8389}
+.focus-badge.med{background:rgba(241,194,27,0.2);color:#f1c21b}
+.focus-badge.ok{background:rgba(36,161,72,0.2);color:#42be65}
+
+/* ── HEATMAP ── */
+.heatmap{overflow-x:auto}
+.hm-tbl{border-collapse:collapse;width:100%}
+.hm-tbl th{background:none;color:var(--text-secondary);padding:6px 10px;font-size:10px;font-family:var(--mono);text-align:center}
+.hm-tbl td{padding:5px 8px;text-align:center;font-family:var(--mono);font-size:11px;font-weight:600;min-width:44px}
+.hm-0{background:rgba(218,30,40,0.2);color:#ff8389}
+.hm-1{background:rgba(255,131,43,0.2);color:#ff832b}
+.hm-2{background:rgba(241,194,27,0.2);color:#f1c21b}
+.hm-3{background:rgba(132,204,22,0.2);color:#a8d729}
+.hm-4{background:rgba(36,161,72,0.2);color:#42be65}
+
+/* ── MANAGE ── */
+.student-card{
+  background:var(--g90);border:1px solid var(--g80);
+  padding:16px 20px;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:12px;
+  margin-bottom:8px;transition:border-color 0.15s;
+}
+.student-card:hover{border-color:var(--ibm-blue)}
+.sc-name{font-weight:600;font-size:14px}
+.sc-roll{font-size:11px;color:var(--text-secondary);font-family:var(--mono);margin-top:2px}
+.sc-stats{font-size:12px;color:var(--text-secondary)}
+.sc-actions{display:flex;gap:8px}
+
+/* ── CODE TEMPLATE ── */
+.code-block{
+  background:var(--g100);border:1px solid var(--g80);
+  padding:16px;font-family:var(--mono);font-size:11px;
+  color:#42be65;overflow-x:auto;line-height:1.6;
+  margin:12px 0;
+}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:20px}
+.page-h1{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.page-header-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9998;
+  background:var(--g80);border-left:4px solid var(--ibm-blue);
+  color:var(--text-primary);padding:14px 20px;font-size:13px;
+  transform:translateY(80px);opacity:0;transition:all 0.3s;
+  max-width:320px;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left-color:var(--ibm-green)}
+.toast.err{border-left-color:var(--ibm-red)}
+
+/* ── CREDIT ── */
+.credit{
+  background:linear-gradient(135deg,var(--g90),#1a1a2e);
+  border:1px solid #303060;padding:24px;text-align:center;margin-top:16px;
+}
+.credit-name{font-family:var(--serif);font-size:20px;font-weight:600;color:#a56eff;margin-bottom:10px}
+.credit-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;font-size:12px;color:var(--text-secondary);font-family:var(--mono)}
+.credit-row strong{color:var(--text-primary)}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--g80);margin:16px 0}
+
+/* ── SEARCH ── */
+.search-wrap{position:relative}
+.search-wrap .input{padding-left:32px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-placeholder);font-size:14px;pointer-events:none}
+
+/* STATUS DOT */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-green{background:var(--ibm-green)}
+.dot-yellow{background:var(--ibm-yellow)}
+.dot-red{background:var(--ibm-red)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--text-secondary)}
+.empty-icon{font-size:48px;margin-bottom:12px;display:block}
+.empty-text{font-size:14px}
+
+/* Table total highlight */
+.total-cell{font-family:var(--mono);font-weight:700;font-size:13px}
+.pct-bar-mini{height:4px;background:var(--g80);margin-top:4px;overflow:hidden}
+.pct-bar-mini-fill{height:100%;background:var(--ibm-blue);transition:width 0.5s}
+
+/* Section label */
+.section-label{
+  font-size:10px;font-family:var(--mono);letter-spacing:2px;color:var(--ibm-cyan);
+  text-transform:uppercase;margin-bottom:6px;display:block;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ INTRO SCREEN ═══════════════════ -->
+<div id="intro">
+  <div class="intro-bg">
+    <div class="intro-grid"></div>
+    <div class="intro-glow-1"></div>
+    <div class="intro-glow-2"></div>
+  </div>
+  <div class="intro-content">
+    <div class="intro-logos">
+      <div class="intro-logo-box">
+        <div class="logo-srmu">
+          <div class="logo-srmu-text">SRMU</div>
+          <div class="logo-srmu-sub">EST. 2011</div>
+        </div>
+        <div class="intro-logo-label">SRMU LUCKNOW</div>
+      </div>
+      <div class="intro-divider"></div>
+      <div class="intro-logo-box">
+        <div class="logo-ibm">
+          <div class="ibm-stripes">
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+            <div class="ibm-stripe"></div>
+          </div>
+        </div>
+        <div class="intro-logo-label">IBM PARTNER</div>
+      </div>
+    </div>
+    <div class="intro-badge">ACADEMIC INTELLIGENCE PLATFORM</div>
+    <h1 class="intro-title">Student Performance<br/><span>Dashboard</span></h1>
+    <p class="intro-sub">Shri Ramswaroop Memorial University, Lucknow<br/>Track marks · Analyse progress · Predict CGPA</p>
+    <div class="intro-meta">
+      <div class="meta-chip"><strong>DEVELOPER</strong>Prateek Singh</div>
+      <div class="meta-chip"><strong>ROLL NO</strong>202410101360128</div>
+      <div class="meta-chip"><strong>CONTACT</strong>9044298094</div>
+    </div>
+    <button class="intro-btn" onclick="enterApp()">▶ &nbsp;LAUNCH DASHBOARD</button>
+    <div class="intro-progress"><div class="intro-progress-bar"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-top">
+      <div class="header-logos">
+        <div class="h-logo-srmu">
+          <div class="h-srmu-badge">SRMU</div>
+          <div>
+            <div class="h-srmu-name">Shri Ramswaroop Memorial University</div>
+            <div class="h-srmu-dept">Academic Performance System</div>
+          </div>
+        </div>
+        <div class="h-sep"></div>
+        <div class="h-ibm">
+          <div class="h-ibm-stripes">
+            <div class="h-ibm-s"></div><div class="h-ibm-s"></div>
+            <div class="h-ibm-s"></div><div class="h-ibm-s"></div>
+            <div class="h-ibm-s"></div><div class="h-ibm-s"></div>
+            <div class="h-ibm-s"></div><div class="h-ibm-s"></div>
+          </div>
+          <div class="h-ibm-label">IBM</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export JSON</button>
+        <button class="btn btn-primary btn-sm" onclick="goTab('dashboard')">📊 Dashboard</button>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-tab active" data-tab="entry" onclick="goTab('entry',this)">📥 Data Entry</button>
+      <button class="nav-tab" data-tab="dashboard" onclick="goTab('dashboard',this)">📊 Dashboard</button>
+      <button class="nav-tab" data-tab="lab" onclick="goTab('lab',this)">🔬 Lab Progress</button>
+      <button class="nav-tab" data-tab="prediction" onclick="goTab('prediction',this)">🤖 CGPA Prediction</button>
+      <button class="nav-tab" data-tab="manage" onclick="goTab('manage',this)">🗂 Manage</button>
+    </nav>
+  </header>
+
+  <!-- ═══════ TAB: DATA ENTRY ═══════ -->
+  <div id="page-entry" class="page active">
+    <div class="page-header">
+      <span class="section-label">Input Module</span>
+      <div class="page-h1">Data Entry</div>
+      <div class="page-sub">Import via file or fill manually — all data saved to browser storage</div>
+    </div>
+
+    <!-- Import panel -->
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-title"><span class="icon">📁</span> Import File</div>
+      <div class="dropzone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+        <span class="dz-icon">📂</span>
+        <p class="dz-text">Drag & Drop CSV or JSON file here, or click to browse</p>
+        <p class="dz-hint">Supports .csv and .json formats</p>
+        <input type="file" id="fileIn" accept=".csv,.json" hidden onchange="handleFile(this)"/>
+      </div>
+    </div>
+
+    <!-- Marks table -->
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-row">
+        <div class="panel-title" style="margin-bottom:0;border:none;padding:0"><span class="icon">📝</span> Marks Entry Table</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="input" id="searchIn" placeholder="Search student..." style="padding-left:32px;width:180px" oninput="renderMarksTable()"/>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="addMarkRow()">+ Add Row</button>
+          <button class="btn btn-success btn-sm" onclick="saveMarks()">💾 Save All</button>
+          <button class="btn btn-danger btn-sm" onclick="clearMarks()">🗑 Clear</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="tbl-wrap">
+        <table class="tbl" id="marksTable">
+          <thead>
+            <tr>
+              <th>Roll No</th><th>Student Name</th><th>Subject</th>
+              <th>DIT-1<span class="max">/25</span></th>
+              <th>Mid Term<span class="max">/30</span></th>
+              <th>DIT-2<span class="max">/25</span></th>
+              <th>Innov. DIT<span class="max">/10</span></th>
+              <th>TA-1<span class="max">/5</span></th>
+              <th>TA-2<span class="max">/5</span></th>
+              <th>Total<span class="max">/100</span></th>
+              <th>Grade</th>
+              <th>Del</th>
+            </tr>
+          </thead>
+          <tbody id="marksTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lab table -->
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-row">
+        <div class="panel-title" style="margin-bottom:0;border:none;padding:0"><span class="icon">🔬</span> Lab Marks Entry (Lab 0 – Lab 10)</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="addLabRow()">+ Add Row</button>
+          <button class="btn btn-success btn-sm" onclick="saveLabs()">💾 Save Lab Data</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="tbl-wrap">
+        <table class="tbl" id="labTable">
+          <thead>
+            <tr>
+              <th>Roll No</th><th>Name</th><th>Subject</th>
+              <th>L0<span class="max">/10</span></th><th>L1<span class="max">/10</span></th>
+              <th>L2<span class="max">/10</span></th><th>L3<span class="max">/10</span></th>
+              <th>L4<span class="max">/10</span></th><th>L5<span class="max">/10</span></th>
+              <th>L6<span class="max">/10</span></th><th>L7<span class="max">/10</span></th>
+              <th>L8<span class="max">/10</span></th><th>L9<span class="max">/10</span></th>
+              <th>L10<span class="max">/10</span></th>
+              <th>Avg</th><th>Del</th>
+            </tr>
+          </thead>
+          <tbody id="labTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CSV Template -->
+    <div class="panel" style="border-color:rgba(15,98,254,0.3)">
+      <div class="panel-title"><span class="icon">📋</span> CSV Template Format</div>
+      <pre class="code-block">rollNo,name,subject,dit1,midterm,dit2,innovativeDit,ta1,ta2
+202410101360128,Prateek Singh,Data Structures,20,24,19,8,4,5
+202410101360128,Prateek Singh,DBMS,18,22,20,7,5,4</pre>
+      <button class="btn btn-ghost btn-sm" onclick="dlTemplate()">⬇ Download CSV Template</button>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: DASHBOARD ═══════ -->
+  <div id="page-dashboard" class="page">
+    <div class="page-header-row">
+      <div>
+        <span class="section-label">Analytics</span>
+        <div class="page-h1">Performance Dashboard</div>
+        <div class="page-sub" id="dashSubtitle">Overview of all students</div>
+      </div>
+      <select class="select" id="dashSel" onchange="renderDash()">
+        <option value="all">📊 All Students</option>
+      </select>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row row-4" style="margin-top:16px" id="kpiRow">
+      <div class="kpi blue"><div class="kpi-label">Class Average</div><div class="kpi-val" id="kpiAvg">—</div><div class="kpi-sub">Out of 100</div></div>
+      <div class="kpi cyan"><div class="kpi-label">Top Score</div><div class="kpi-val" id="kpiTop">—</div><div class="kpi-sub">Highest marks</div></div>
+      <div class="kpi green"><div class="kpi-label">Pass Rate</div><div class="kpi-val" id="kpiPass">—</div><div class="kpi-sub">Above 40 marks</div></div>
+      <div class="kpi yellow"><div class="kpi-label">Students</div><div class="kpi-val" id="kpiCount">0</div><div class="kpi-sub">Enrolled</div></div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row row-2">
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">📊</span> Component-wise Average</div>
+        <canvas id="cComponents"></canvas>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">📈</span> Subject-wise Performance</div>
+        <canvas id="cSubjects"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row row-2">
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">🎯</span> Grade Distribution</div>
+        <canvas id="cGrades"></canvas>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">🕸</span> Performance Radar</div>
+        <canvas id="cRadar"></canvas>
+      </div>
+    </div>
+
+    <!-- Detail table -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon">📋</span> Score Breakdown</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr><th>Student</th><th>Subject</th><th>DIT-1</th><th>Mid</th><th>DIT-2</th><th>Innov</th><th>TA1</th><th>TA2</th><th>Total</th><th>%</th><th>Grade</th></tr>
+          </thead>
+          <tbody id="dashTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: LAB ═══════ -->
+  <div id="page-lab" class="page">
+    <div class="page-header-row">
+      <div>
+        <span class="section-label">Laboratory</span>
+        <div class="page-h1">Lab Progress Tracker</div>
+        <div class="page-sub">Lab 0 → Lab 10 performance analysis</div>
+      </div>
+      <select class="select" id="labSel" onchange="renderLab()">
+        <option value="all">All Students</option>
+      </select>
+    </div>
+
+    <div class="row row-4" id="labKpiRow" style="margin-top:16px">
+      <div class="kpi blue"><div class="kpi-label">Overall Avg</div><div class="kpi-val" id="lkpiAvg">—</div><div class="kpi-sub">Out of 10</div></div>
+      <div class="kpi green"><div class="kpi-label">Best Avg</div><div class="kpi-val" id="lkpiBest">—</div><div class="kpi-sub">Top performer</div></div>
+      <div class="kpi cyan"><div class="kpi-label">Improving</div><div class="kpi-val" id="lkpiImprove">—</div><div class="kpi-sub">Lab0→Lab10 ↑</div></div>
+      <div class="kpi yellow"><div class="kpi-label">Lab Records</div><div class="kpi-val" id="lkpiCount">—</div></div>
+    </div>
+
+    <div class="row row-2">
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">📈</span> Lab Progress Over Time</div>
+        <canvas id="cLabLine"></canvas>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-title"><span class="icon">📊</span> Average per Lab</div>
+        <canvas id="cLabBar"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="icon">🔥</span> Performance Heatmap</div>
+      <div class="heatmap" id="labHeatmap"></div>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: PREDICTION ═══════ -->
+  <div id="page-prediction" class="page">
+    <div class="page-header-row">
+      <div>
+        <span class="section-label">AI Engine</span>
+        <div class="page-h1">CGPA Prediction</div>
+        <div class="page-sub">End-semester forecast based on internal assessment data</div>
+      </div>
+      <select class="select" id="predSel" onchange="renderPred()">
+        <option value="">— Select Student —</option>
+      </select>
+    </div>
+
+    <div id="predEmpty" style="margin-top:32px">
+      <div class="empty">
+        <span class="empty-icon">🤖</span>
+        <div class="empty-text">Select a student above to see their CGPA prediction and recommendations</div>
+      </div>
+    </div>
+
+    <div id="predResult" style="display:none">
+      <div class="pred-hero" style="margin-top:16px">
+        <div class="pred-cgpa-block">
+          <div class="pred-lbl">Predicted CGPA</div>
+          <div class="pred-num" id="pNum">—</div>
+          <div class="pred-grade-tag" id="pGTag">—</div>
+        </div>
+        <div class="pred-bar-block">
+          <div class="pred-bar-label">Predicted End-Semester Score</div>
+          <div class="pred-track"><div class="pred-fill" id="pFill"></div></div>
+          <div class="pred-pct" id="pPct">—%</div>
+        </div>
+      </div>
+
+      <div class="row row-2">
+        <div class="chart-panel">
+          <div class="panel-title"><span class="icon">📊</span> Subject CGPA Forecast</div>
+          <canvas id="cPredSub"></canvas>
+        </div>
+        <div class="chart-panel">
+          <div class="panel-title"><span class="icon">📈</span> Component Performance %</div>
+          <canvas id="cPredComp"></canvas>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-title"><span class="icon">🎯</span> Focus Recommendations</div>
+        <div class="focus-grid" id="focusGrid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span class="icon">📋</span> Subject-wise Analysis</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr><th>Subject</th><th>Internal %</th><th>Predicted CGPA</th><th>End-Sem Needed</th><th>Priority</th><th>Status</th></tr>
+            </thead>
+            <tbody id="predTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: MANAGE ═══════ -->
+  <div id="page-manage" class="page">
+    <div class="page-header-row">
+      <div>
+        <span class="section-label">Data Management</span>
+        <div class="page-h1">Manage Students</div>
+        <div class="page-sub">View, edit and control all student records</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="exportData()">⬇ Export JSON</button>
+        <button class="btn btn-ghost" onclick="importJSON()">⬆ Import JSON</button>
+        <button class="btn btn-danger" onclick="wipeAll()">⚠ Wipe All</button>
+      </div>
+    </div>
+
+    <div id="manageWrap" style="margin-top:16px"></div>
+
+    <div class="credit">
+      <div class="credit-name">SRMU × IBM Academic Dashboard</div>
+      <div class="credit-row">
+        <span>Made by <strong>Prateek Singh</strong></span>
+        <span>Roll No: <strong>202410101360128</strong></span>
+        <span>📞 <strong>9044298094</strong></span>
+        <span>✉ <strong>thakurprateeksinghsuryavanshi@gmail.com</strong></span>
+        <span>🏛 <strong>SRMU Lucknow</strong></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   APPLICATION LOGIC
+   ═══════════════════════════════════════════════ */
+
+// ─── STATE ───────────────────────────────────────
+let DB = { marks: [], labs: [] };
+let charts = {};
+
+// ─── BOOT ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadDB();
+  initDrop();
+  renderMarksTable();
+  renderLabTable();
+  if (!DB.marks.length) seed();
+});
+
+// ─── INTRO ───────────────────────────────────────
+function enterApp() {
+  document.getElementById('intro').classList.add('hide');
+  setTimeout(() => {
+    document.getElementById('intro').style.display = 'none';
+    const app = document.getElementById('app');
+    app.style.display = 'block';
+    app.classList.add('show');
+    populateSelectors();
+    renderDash();
+  }, 800);
+}
+
+// ─── SEED ────────────────────────────────────────
+function seed() {
+  [
+    {rollNo:'202410101360128',name:'Prateek Singh',subject:'Data Structures',dit1:20,midterm:24,dit2:19,innovativeDit:8,ta1:4,ta2:5},
+    {rollNo:'202410101360128',name:'Prateek Singh',subject:'DBMS',dit1:18,midterm:22,dit2:20,innovativeDit:7,ta1:5,ta2:4},
+    {rollNo:'202410101360128',name:'Prateek Singh',subject:'Operating Systems',dit1:15,midterm:18,dit2:14,innovativeDit:6,ta1:3,ta2:4},
+    {rollNo:'202410101360129',name:'Ananya Sharma',subject:'Data Structures',dit1:22,midterm:26,dit2:21,innovativeDit:9,ta1:5,ta2:5},
+    {rollNo:'202410101360129',name:'Ananya Sharma',subject:'DBMS',dit1:14,midterm:16,dit2:13,innovativeDit:5,ta1:3,ta2:3},
+    {rollNo:'202410101360130',name:'Rohit Verma',subject:'Data Structures',dit1:12,midterm:14,dit2:10,innovativeDit:4,ta1:2,ta2:3},
+    {rollNo:'202410101360130',name:'Rohit Verma',subject:'Operating Systems',dit1:19,midterm:23,dit2:18,innovativeDit:8,ta1:5,ta2:4},
+    {rollNo:'202410101360131',name:'Nisha Gupta',subject:'Data Structures',dit1:8,midterm:12,dit2:9,innovativeDit:3,ta1:2,ta2:2},
+    {rollNo:'202410101360131',name:'Nisha Gupta',subject:'DBMS',dit1:17,midterm:20,dit2:16,innovativeDit:6,ta1:4,ta2:4},
+  ].forEach(r => DB.marks.push({id:uid(),...r}));
+  [
+    {rollNo:'202410101360128',name:'Prateek Singh',subject:'DS Lab',lab0:8,lab1:7,lab2:9,lab3:8,lab4:9,lab5:10,lab6:9,lab7:8,lab8:10,lab9:9,lab10:10},
+    {rollNo:'202410101360128',name:'Prateek Singh',subject:'DBMS Lab',lab0:6,lab1:7,lab2:8,lab3:7,lab4:8,lab5:8,lab6:9,lab7:9,lab8:10,lab9:10,lab10:10},
+    {rollNo:'202410101360129',name:'Ananya Sharma',subject:'DS Lab',lab0:9,lab1:10,lab2:9,lab3:10,lab4:10,lab5:10,lab6:9,lab7:10,lab8:10,lab9:10,lab10:10},
+    {rollNo:'202410101360130',name:'Rohit Verma',subject:'DS Lab',lab0:5,lab1:4,lab2:6,lab3:5,lab4:6,lab5:7,lab6:6,lab7:7,lab8:8,lab9:7,lab10:8},
+    {rollNo:'202410101360131',name:'Nisha Gupta',subject:'DS Lab',lab0:4,lab1:5,lab2:5,lab3:6,lab4:6,lab5:7,lab6:7,lab7:8,lab8:7,lab9:8,lab10:9},
+  ].forEach(r => DB.labs.push({id:uid(),...r}));
+  saveDB();
+  renderMarksTable();
+  renderLabTable();
+}
+
+// ─── STORAGE ─────────────────────────────────────
+function saveDB() { localStorage.setItem('srmu_db', JSON.stringify(DB)); }
+function loadDB() { const d = localStorage.getItem('srmu_db'); if (d) DB = JSON.parse(d); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ─── TABS ─────────────────────────────────────────
+function goTab(name, el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    const btn = document.querySelector(`.nav-tab[data-tab="${name}"]`);
+    if (btn) btn.classList.add('active');
+  }
+  document.getElementById('page-'+name).classList.add('active');
+  if (name === 'dashboard') { populateSelectors(); renderDash(); }
+  if (name === 'lab') { populateLabSel(); renderLab(); }
+  if (name === 'prediction') { populatePredSel(); }
+  if (name === 'manage') renderManage();
+}
+
+// ─── MARKS TABLE ─────────────────────────────────
+function renderMarksTable() {
+  const q = (document.getElementById('searchIn')?.value||'').toLowerCase();
+  const data = q ? DB.marks.filter(r=>r.name.toLowerCase().includes(q)||r.rollNo.includes(q)) : DB.marks;
+  const tb = document.getElementById('marksTbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML = `<tr><td colspan="12"><div class="empty"><span class="empty-icon">📭</span><div class="empty-text">No data yet. Add a row or import a file.</div></div></td></tr>`; return; }
+  tb.innerHTML = data.map(r => {
+    const tot = total(r);
+    return `<tr data-id="${r.id}">
+      <td><input value="${r.rollNo||''}" placeholder="Roll No" class="fr"/></td>
+      <td><input value="${r.name||''}" placeholder="Name" class="fn"/></td>
+      <td><input value="${r.subject||''}" placeholder="Subject" class="fs"/></td>
+      <td><input type="number" value="${r.dit1||0}" min="0" max="25" class="fd1" oninput="liveTotal(this)"/></td>
+      <td><input type="number" value="${r.midterm||0}" min="0" max="30" class="fm" oninput="liveTotal(this)"/></td>
+      <td><input type="number" value="${r.dit2||0}" min="0" max="25" class="fd2" oninput="liveTotal(this)"/></td>
+      <td><input type="number" value="${r.innovativeDit||0}" min="0" max="10" class="fi" oninput="liveTotal(this)"/></td>
+      <td><input type="number" value="${r.ta1||0}" min="0" max="5" class="ft1" oninput="liveTotal(this)"/></td>
+      <td><input type="number" value="${r.ta2||0}" min="0" max="5" class="ft2" oninput="liveTotal(this)"/></td>
+      <td class="ftot total-cell">${tot}</td>
+      <td class="fgr">${tagHTML(tot)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delMark('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function total(r) {
+  return (r.dit1||0)+(r.midterm||0)+(r.dit2||0)+(r.innovativeDit||0)+(r.ta1||0)+(r.ta2||0);
+}
+function liveTotal(inp) {
+  const tr = inp.closest('tr');
+  const d1=+tr.querySelector('.fd1').value||0, m=+tr.querySelector('.fm').value||0,
+        d2=+tr.querySelector('.fd2').value||0, i=+tr.querySelector('.fi').value||0,
+        t1=+tr.querySelector('.ft1').value||0, t2=+tr.querySelector('.ft2').value||0;
+  const tot=d1+m+d2+i+t1+t2;
+  tr.querySelector('.ftot').textContent=tot;
+  tr.querySelector('.fgr').innerHTML=tagHTML(tot);
+}
+function tagHTML(tot) {
+  const p=tot, g=grade(p);
+  const cls={'O':'tag-O','A+':'tag-Ap','A':'tag-A','B+':'tag-Bp','B':'tag-B','C':'tag-C','F':'tag-F'}[g]||'tag-F';
+  return `<span class="tag ${cls}">${g}</span>`;
+}
+function grade(pct) {
+  if(pct>=90) return 'O'; if(pct>=80) return 'A+'; if(pct>=70) return 'A';
+  if(pct>=60) return 'B+'; if(pct>=50) return 'B'; if(pct>=40) return 'C'; return 'F';
+}
+function cgpa(g) { return {'O':10,'A+':9,'A':8,'B+':7,'B':6,'C':5,'F':0}[g]||0; }
+function addMarkRow() {
+  DB.marks.push({id:uid(),rollNo:'',name:'',subject:'',dit1:0,midterm:0,dit2:0,innovativeDit:0,ta1:0,ta2:0});
+  renderMarksTable();
+  const rows = document.querySelectorAll('#marksTbody tr');
+  if(rows.length) rows[rows.length-1].querySelector('input')?.focus();
+}
+function delMark(id) { DB.marks=DB.marks.filter(r=>r.id!==id); saveDB(); renderMarksTable(); toast('Row deleted','err'); }
+function saveMarks() {
+  document.querySelectorAll('#marksTbody tr[data-id]').forEach(tr => {
+    const id=tr.dataset.id, rec=DB.marks.find(r=>r.id===id);
+    if(rec) {
+      rec.rollNo=tr.querySelector('.fr').value;
+      rec.name=tr.querySelector('.fn').value;
+      rec.subject=tr.querySelector('.fs').value;
+      rec.dit1=+tr.querySelector('.fd1').value||0;
+      rec.midterm=+tr.querySelector('.fm').value||0;
+      rec.dit2=+tr.querySelector('.fd2').value||0;
+      rec.innovativeDit=+tr.querySelector('.fi').value||0;
+      rec.ta1=+tr.querySelector('.ft1').value||0;
+      rec.ta2=+tr.querySelector('.ft2').value||0;
+    }
+  });
+  saveDB(); populateSelectors(); toast('✅ Marks saved successfully!','ok');
+}
+function clearMarks() {
+  if(confirm('Clear all marks data?')) { DB.marks=[]; saveDB(); renderMarksTable(); toast('Cleared','err'); }
+}
+
+// ─── LAB TABLE ────────────────────────────────────
+function renderLabTable() {
+  const tb = document.getElementById('labTbody');
+  if (!tb) return;
+  if (!DB.labs.length) { tb.innerHTML = `<tr><td colspan="16"><div class="empty"><span class="empty-icon">🔬</span><div class="empty-text">No lab data yet.</div></div></td></tr>`; return; }
+  tb.innerHTML = DB.labs.map(r => {
+    const labs = Array.from({length:11},(_,i)=>`<td><input type="number" value="${r['lab'+i]||0}" min="0" max="10" class="ll${i}" oninput="liveLabAvg(this)"/></td>`).join('');
+    const avg = labAvg(r);
+    return `<tr data-id="${r.id}">
+      <td><input value="${r.rollNo||''}" placeholder="Roll" class="llr"/></td>
+      <td><input value="${r.name||''}" placeholder="Name" class="lln"/></td>
+      <td><input value="${r.subject||''}" placeholder="Subject" class="lls"/></td>
+      ${labs}
+      <td class="llavg total-cell">${avg.toFixed(1)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delLab('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function labAvg(r) {
+  let s=0,c=0; for(let i=0;i<=10;i++){const v=Number(r['lab'+i]);if(!isNaN(v)){s+=v;c++;}} return c?s/c:0;
+}
+function liveLabAvg(inp) {
+  const tr=inp.closest('tr');
+  const vals=Array.from({length:11},(_,i)=>+tr.querySelector(`.ll${i}`)?.value||0);
+  tr.querySelector('.llavg').textContent=(vals.reduce((a,b)=>a+b,0)/11).toFixed(1);
+}
+function addLabRow() {
+  const r={id:uid(),rollNo:'',name:'',subject:''};
+  for(let i=0;i<=10;i++) r['lab'+i]=0;
+  DB.labs.push(r); renderLabTable();
+}
+function delLab(id) { DB.labs=DB.labs.filter(r=>r.id!==id); saveDB(); renderLabTable(); toast('Row deleted','err'); }
+function saveLabs() {
+  document.querySelectorAll('#labTbody tr[data-id]').forEach(tr => {
+    const id=tr.dataset.id, rec=DB.labs.find(r=>r.id===id);
+    if(rec) {
+      rec.rollNo=tr.querySelector('.llr').value;
+      rec.name=tr.querySelector('.lln').value;
+      rec.subject=tr.querySelector('.lls').value;
+      for(let i=0;i<=10;i++) rec['lab'+i]=+tr.querySelector(`.ll${i}`)?.value||0;
+    }
+  });
+  saveDB(); populateLabSel(); toast('✅ Lab data saved!','ok');
+}
+
+// ─── FILE IMPORT ──────────────────────────────────
+function initDrop() {
+  const dz = document.getElementById('dropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
+  dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+}
+function handleFile(inp) { if(inp.files[0]) processFile(inp.files[0]); }
+function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (ext==='json') {
+      try {
+        const d=JSON.parse(e.target.result);
+        if(d.marks) d.marks.forEach(r=>DB.marks.push({id:uid(),...r}));
+        if(d.labs) d.labs.forEach(r=>DB.labs.push({id:uid(),...r}));
+        saveDB(); renderMarksTable(); renderLabTable(); populateSelectors();
+        toast(`✅ JSON imported — ${(d.marks||[]).length} mark records, ${(d.labs||[]).length} lab records`,'ok');
+      } catch { toast('❌ Invalid JSON file','err'); }
+    } else if (ext==='csv') {
+      Papa.parse(e.target.result, { header:true, skipEmptyLines:true, complete: res => {
+        res.data.forEach(row => DB.marks.push({
+          id:uid(), rollNo:row.rollNo||row['Roll No']||'',
+          name:row.name||row['Name']||'', subject:row.subject||row['Subject']||'',
+          dit1:+row.dit1||0, midterm:+row.midterm||0, dit2:+row.dit2||0,
+          innovativeDit:+row.innovativeDit||0, ta1:+row.ta1||0, ta2:+row.ta2||0,
+        }));
+        saveDB(); renderMarksTable(); populateSelectors();
+        toast(`✅ ${res.data.length} rows imported from CSV`,'ok');
+      }});
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ─── SELECTORS ───────────────────────────────────
+function getStudents() {
+  const seen=new Set();
+  return DB.marks.filter(r=>{ if(!seen.has(r.rollNo)){seen.add(r.rollNo);return true;} return false; })
+    .map(r=>({rollNo:r.rollNo,name:r.name}));
+}
+function populateSelectors() {
+  const students=getStudents();
+  ['dashSel','predSel'].forEach(id => {
+    const sel=document.getElementById(id);
+    if (!sel) return;
+    const prev=sel.value;
+    sel.innerHTML = id==='predSel'
+      ? '<option value="">— Select Student —</option>'
+      : '<option value="all">📊 All Students</option>';
+    students.forEach(s => {
+      const o=document.createElement('option');
+      o.value=s.rollNo; o.textContent=`${s.name} (${s.rollNo})`;
+      sel.appendChild(o);
+    });
+    if (prev) sel.value=prev;
+  });
+}
+function populateLabSel() {
+  const sel=document.getElementById('labSel');
+  if (!sel) return;
+  const seen=new Set(), prev=sel.value;
+  sel.innerHTML='<option value="all">All Students</option>';
+  DB.labs.filter(r=>{ if(!seen.has(r.rollNo)){seen.add(r.rollNo);return true;} return false; })
+    .forEach(s => {
+      const o=document.createElement('option');
+      o.value=s.rollNo; o.textContent=`${s.name} (${s.rollNo})`; sel.appendChild(o);
+    });
+  if (prev) sel.value=prev;
+}
+function populatePredSel() {
+  populateSelectors();
+}
+
+// ─── DASHBOARD ───────────────────────────────────
+function renderDash() {
+  const val=document.getElementById('dashSel')?.value||'all';
+  const data=val==='all'?DB.marks:DB.marks.filter(r=>r.rollNo===val);
+  const name=val==='all'?'All Students':(data[0]?.name||val);
+  document.getElementById('dashSubtitle').textContent=val==='all'?`${getStudents().length} students enrolled`:`${name} · ${data.length} subject(s)`;
+
+  // KPIs
+  const tots=data.map(r=>total(r));
+  document.getElementById('kpiAvg').textContent=tots.length?(tots.reduce((a,b)=>a+b,0)/tots.length).toFixed(1):'—';
+  document.getElementById('kpiTop').textContent=tots.length?Math.max(...tots):'—';
+  document.getElementById('kpiPass').textContent=tots.length?Math.round(tots.filter(t=>t>=40).length/tots.length*100)+'%':'—';
+  document.getElementById('kpiCount').textContent=val==='all'?getStudents().length:1;
+
+  // Detail table
+  const tb=document.getElementById('dashTbody');
+  if (tb) {
+    tb.innerHTML=!data.length?`<tr><td colspan="11"><div class="empty"><span class="empty-icon">📊</span><div class="empty-text">No data to display.</div></div></td></tr>`:
+      data.map(r=>{
+        const t=total(r);
+        return `<tr><td>${r.name}</td><td>${r.subject}</td>
+          <td>${r.dit1}</td><td>${r.midterm}</td><td>${r.dit2}</td>
+          <td>${r.innovativeDit}</td><td>${r.ta1}</td><td>${r.ta2}</td>
+          <td class="total-cell">${t}</td><td>${t}%</td><td>${tagHTML(t)}</td></tr>`;
+      }).join('');
+  }
+
+  // Charts
+  renderComponentChart(data);
+  renderSubjectChart(data);
+  renderGradeChart(data);
+  renderRadarChart(data, val, name);
+}
+
+function renderComponentChart(data) {
+  kill('cComponents');
+  const ctx=document.getElementById('cComponents');
+  if(!ctx) return;
+  const keys=['dit1','midterm','dit2','innovativeDit','ta1','ta2'];
+  const maxes=[25,30,25,10,5,5];
+  const avgs=keys.map((k,i)=>data.length?((data.reduce((a,r)=>a+(+r[k]||0),0)/data.length)/maxes[i]*100).toFixed(1):0);
+  charts['cComponents']=new Chart(ctx,{type:'bar',data:{
+    labels:['DIT-1\n(/25)','Mid Term\n(/30)','DIT-2\n(/25)','Innov. DIT\n(/10)','TA-1\n(/5)','TA-2\n(/5)'],
+    datasets:[{label:'Score %',data:avgs,
+      backgroundColor:['#0f62fe','#1192e8','#009d9a','#24a148','#f1c21b','#ee5396'],
+      borderRadius:2,borderSkipped:false}]
+  },options:barOpts('Avg Score %',100)});
+}
+function renderSubjectChart(data) {
+  kill('cSubjects');
+  const ctx=document.getElementById('cSubjects');
+  if(!ctx) return;
+  const subs=[...new Set(data.map(r=>r.subject))];
+  const avgs=subs.map(s=>{const d=data.filter(r=>r.subject===s);return d.length?(d.reduce((a,r)=>a+total(r),0)/d.length).toFixed(1):0;});
+  charts['cSubjects']=new Chart(ctx,{type:'bar',data:{
+    labels:subs,
+    datasets:[{label:'Avg Total',data:avgs,
+      backgroundColor:subs.map((_,i)=>`hsl(${205+i*30},80%,55%)`),borderRadius:2,borderSkipped:false}]
+  },options:barOpts('Avg Total',100)});
+}
+function renderGradeChart(data) {
+  kill('cGrades');
+  const ctx=document.getElementById('cGrades');
+  if(!ctx) return;
+  const buckets={O:0,'A+':0,A:0,'B+':0,B:0,C:0,F:0};
+  data.forEach(r=>{const g=grade(total(r));buckets[g]=(buckets[g]||0)+1;});
+  const lbls=Object.keys(buckets).filter(k=>buckets[k]>0);
+  charts['cGrades']=new Chart(ctx,{type:'doughnut',data:{
+    labels:lbls,datasets:[{data:lbls.map(k=>buckets[k]),
+      backgroundColor:['#24a148','#1192e8','#0f62fe','#8a3ffc','#f1c21b','#ff832b','#da1e28'],
+      borderWidth:0,hoverOffset:6}]
+  },options:{responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:true,labels:{color:'#c6c6c6',font:{size:11},boxWidth:12}},
+      tooltip:darkTip()},cutout:'60%'}});
+}
+function renderRadarChart(data, val, name) {
+  kill('cRadar');
+  const ctx=document.getElementById('cRadar');
+  if(!ctx) return;
+  const keys=['dit1','midterm','dit2','innovativeDit','ta1','ta2'];
+  const maxes=[25,30,25,10,5,5];
+  const avgs=keys.map((k,i)=>data.length?((data.reduce((a,r)=>a+(+r[k]||0),0)/data.length)/maxes[i]*100).toFixed(1):0);
+  charts['cRadar']=new Chart(ctx,{type:'radar',data:{
+    labels:['DIT-1','Mid Term','DIT-2','Innovative','TA-1','TA-2'],
+    datasets:[{label:val==='all'?'Class Average':name,data:avgs,
+      backgroundColor:'rgba(15,98,254,0.12)',borderColor:'#4589ff',
+      pointBackgroundColor:'#4589ff',borderWidth:2,pointRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:true,
+    scales:{r:{beginAtZero:true,max:100,
+      ticks:{color:'#525252',stepSize:25,backdropColor:'transparent',font:{size:10}},
+      grid:{color:'#393939'},angleLines:{color:'#393939'},
+      pointLabels:{color:'#a8a8a8',font:{size:11}}}},
+    plugins:{legend:{labels:{color:'#a8a8a8',font:{size:11}}},tooltip:darkTip()}}});
+}
+
+// ─── LAB ──────────────────────────────────────────
+function renderLab() {
+  populateLabSel();
+  const val=document.getElementById('labSel')?.value||'all';
+  const data=val==='all'?DB.labs:DB.labs.filter(r=>r.rollNo===val);
+
+  // KPIs
+  const avgs=data.map(r=>labAvg(r));
+  document.getElementById('lkpiAvg').textContent=avgs.length?(avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(2):'—';
+  document.getElementById('lkpiBest').textContent=avgs.length?Math.max(...avgs).toFixed(2):'—';
+  document.getElementById('lkpiImprove').textContent=data.filter(r=>r.lab10>r.lab0).length;
+  document.getElementById('lkpiCount').textContent=data.length;
+
+  if (!data.length) return;
+
+  // Line chart
+  kill('cLabLine');
+  const lctx=document.getElementById('cLabLine');
+  if (lctx) {
+    const cols=['#0f62fe','#1192e8','#009d9a','#f1c21b','#8a3ffc','#ee5396'];
+    charts['cLabLine']=new Chart(lctx,{type:'line',data:{
+      labels:Array.from({length:11},(_,i)=>'Lab '+i),
+      datasets:data.map((s,i)=>({
+        label:`${s.name} — ${s.subject}`,
+        data:Array.from({length:11},(_,j)=>s['lab'+j]||0),
+        borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length]+'18',
+        fill:true,tension:0.4,borderWidth:2,pointRadius:4,pointBackgroundColor:cols[i%cols.length]
+      }))
+    },options:{...lineOpts('Lab Score /10'),scales:{...chartScales(),y:{...chartScales().y,max:10}}}});
+  }
+
+  // Bar chart
+  kill('cLabBar');
+  const bctx=document.getElementById('cLabBar');
+  if (bctx) {
+    const avgPerLab=Array.from({length:11},(_,j)=>{
+      const vals=data.map(s=>+s['lab'+j]||0);
+      return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2):0;
+    });
+    charts['cLabBar']=new Chart(bctx,{type:'bar',data:{
+      labels:Array.from({length:11},(_,i)=>'Lab '+i),
+      datasets:[{label:'Avg Score',data:avgPerLab,
+        backgroundColor:Array.from({length:11},(_,i)=>`hsl(${200+i*14},75%,52%)`),
+        borderRadius:2,borderSkipped:false}]
+    },options:barOpts('Avg Score',10)});
+  }
+
+  // Heatmap
+  const hm=document.getElementById('labHeatmap');
+  if (hm) {
+    const heads=`<th>Student / Subject</th>${Array.from({length:11},(_,i)=>`<th>L${i}</th>`).join('')}<th>Avg</th>`;
+    const rows=data.map(s=>{
+      const vals=Array.from({length:11},(_,i)=>+s['lab'+i]||0);
+      const cells=vals.map(v=>`<td class="hm-${v>=9?4:v>=7?3:v>=5?2:v>=3?1:0}">${v}</td>`).join('');
+      const avg=(vals.reduce((a,b)=>a+b,0)/11).toFixed(1);
+      return `<tr><td style="text-align:left;padding:5px 10px;font-size:11px;font-weight:600;white-space:nowrap">${s.name}<br/><span style="color:#6f6f6f;font-size:10px;font-family:var(--mono)">${s.subject}</span></td>${cells}<td style="font-weight:700;font-family:var(--mono);font-size:12px">${avg}</td></tr>`;
+    }).join('');
+    hm.innerHTML=`<table class="hm-tbl"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+}
+
+// ─── PREDICTION ───────────────────────────────────
+function renderPred() {
+  const val=document.getElementById('predSel')?.value||'';
+  document.getElementById('predEmpty').style.display=val?'none':'block';
+  document.getElementById('predResult').style.display=val?'block':'none';
+  if (!val) return;
+
+  const data=DB.marks.filter(r=>r.rollNo===val);
+  if (!data.length) return;
+
+  const subs=[...new Set(data.map(r=>r.subject))];
+  const subData=subs.map(s=>{
+    const rows=data.filter(r=>r.subject===s);
+    const avg=rows.reduce((a,r)=>a+total(r),0)/rows.length;
+    const g=grade(avg);
+    const c=cgpa(g);
+    const endNeeded=Math.max(0,40-avg*0.5).toFixed(1);
+    return {s,avg:avg.toFixed(1),g,c,endNeeded};
+  });
+
+  const avgCGPA=(subData.reduce((a,d)=>a+d.c,0)/subData.length).toFixed(2);
+  const avgPct=(subData.reduce((a,d)=>a+Number(d.avg),0)/subData.length).toFixed(1);
+  const endPred=Math.min(100,Number(avgPct)*1.1).toFixed(1);
+
+  // Hero
+  document.getElementById('pNum').textContent=avgCGPA;
+  document.getElementById('pGTag').textContent=`Grade: ${grade(Number(avgPct))}`;
+  document.getElementById('pPct').textContent=endPred+'%';
+  setTimeout(()=>{ const f=document.getElementById('pFill'); if(f) f.style.width=endPred+'%'; },100);
+
+  // Subject forecast chart
+  kill('cPredSub');
+  const sc=document.getElementById('cPredSub');
+  if (sc) {
+    charts['cPredSub']=new Chart(sc,{type:'bar',data:{
+      labels:subData.map(d=>d.s),
+      datasets:[{
+        label:'Predicted CGPA',data:subData.map(d=>d.c),
+        backgroundColor:subData.map(d=>d.c>=8?'#24a148':d.c>=6?'#f1c21b':'#da1e28'),
+        borderRadius:2,borderSkipped:false
+      },{
+        label:'Target (CGPA 8)',data:subData.map(()=>8),
+        type:'line',borderColor:'#8a3ffc',borderDash:[5,5],
+        pointRadius:0,fill:false,borderWidth:2
+      }]
+    },options:{...barOpts('CGPA /10',10)}});
+  }
+
+  // Component chart
+  kill('cPredComp');
+  const cc=document.getElementById('cPredComp');
+  if (cc) {
+    const keys=['dit1','midterm','dit2','innovativeDit','ta1','ta2'];
+    const maxes=[25,30,25,10,5,5];
+    const pcts=keys.map((k,i)=>data.length?((data.reduce((a,r)=>a+(+r[k]||0),0)/data.length)/maxes[i]*100).toFixed(1):0);
+    charts['cPredComp']=new Chart(cc,{type:'line',data:{
+      labels:['DIT-1','Mid Term','DIT-2','Innovative','TA-1','TA-2'],
+      datasets:[{
+        label:'Performance %',data:pcts,
+        borderColor:'#0f62fe',backgroundColor:'rgba(15,98,254,0.08)',
+        fill:true,tension:0.4,borderWidth:2,pointRadius:5,pointBackgroundColor:'#0f62fe'
+      },{
+        label:'Target 75%',data:keys.map(()=>75),
+        borderColor:'#24a148',borderDash:[5,5],pointRadius:0,fill:false,borderWidth:2
+      }]
+    },options:{...lineOpts('Performance %'),scales:{...chartScales(),y:{...chartScales().y,max:100}}}});
+  }
+
+  // Focus cards
+  const fg=document.getElementById('focusGrid');
+  if (fg) {
+    const sorted=[...subData].sort((a,b)=>Number(a.avg)-Number(b.avg));
+    fg.innerHTML=sorted.map(d=>{
+      const p=Number(d.avg);
+      let cls,tag,msg;
+      if(p<50){cls='high';tag='🔴 HIGH PRIORITY';msg='At risk of failing. Immediate attention needed. Focus heavily on this subject.'}
+      else if(p<65){cls='med';tag='🟡 MEDIUM PRIORITY';msg='Below satisfactory level. Regular revision and practice needed.'}
+      else{cls='ok';tag='🟢 ON TRACK';msg='Performance is good. Maintain consistency and aim for higher score.'}
+      return `<div class="focus-card ${cls}">
+        <div class="focus-subj">${d.s}</div>
+        <div class="focus-msg">${msg}</div>
+        <div class="focus-stat">Internal: ${p}% &nbsp;|&nbsp; Predicted CGPA: <strong>${d.c}</strong> &nbsp;|&nbsp; Grade: <strong>${d.g}</strong></div>
+        <span class="focus-badge ${cls}">${tag}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Prediction table
+  const pt=document.getElementById('predTbody');
+  if (pt) {
+    pt.innerHTML=subData.map(d=>{
+      const p=Number(d.avg);
+      const pri=p<50?`<span class="tag tag-F">High</span>`:p<65?`<span class="tag tag-C">Medium</span>`:`<span class="tag tag-A">Low</span>`;
+      const sts=p>=75?`<span style="color:#42be65">✅ Strong</span>`:p>=50?`<span style="color:#f1c21b">⚠ Needs Work</span>`:`<span style="color:#ff8389">❌ At Risk</span>`;
+      return `<tr><td>${d.s}</td><td style="font-family:var(--mono)">${p}%</td><td style="font-family:var(--mono);font-weight:700">${d.c}</td><td style="font-family:var(--mono)">${d.endNeeded}%</td><td>${pri}</td><td>${sts}</td></tr>`;
+    }).join('');
+  }
+}
+
+// ─── MANAGE ───────────────────────────────────────
+function renderManage() {
+  const w=document.getElementById('manageWrap');
+  if (!w) return;
+  const students=getStudents();
+  if (!students.length) { w.innerHTML=`<div class="empty"><span class="empty-icon">🗂</span><div class="empty-text">No student records found.</div></div>`; return; }
+  w.innerHTML=students.map(s=>{
+    const recs=DB.marks.filter(r=>r.rollNo===s.rollNo);
+    const lrecs=DB.labs.filter(r=>r.rollNo===s.rollNo);
+    const avg=recs.length?(recs.reduce((a,r)=>a+total(r),0)/recs.length).toFixed(1):'—';
+    const g=avg!=='—'?grade(Number(avg)):'-';
+    return `<div class="student-card">
+      <div>
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-roll">${s.rollNo}</div>
+      </div>
+      <div class="sc-stats">
+        ${recs.length} subject(s) &nbsp;·&nbsp; ${lrecs.length} lab record(s) &nbsp;·&nbsp;
+        Avg: <strong style="color:var(--text-primary)">${avg}/100</strong> &nbsp;·&nbsp;
+        Grade: ${tagHTML(Number(avg)||0)}
+      </div>
+      <div class="sc-actions">
+        <button class="btn btn-ghost btn-sm" onclick="viewStudent('${s.rollNo}')">👁 View</button>
+        <button class="btn btn-danger btn-sm" onclick="delStudent('${s.rollNo}')">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function viewStudent(rollNo) {
+  goTab('dashboard');
+  setTimeout(()=>{ const sel=document.getElementById('dashSel'); if(sel){sel.value=rollNo;renderDash();} },100);
+}
+function delStudent(rollNo) {
+  if(confirm(`Delete all records for this student?`)){
+    DB.marks=DB.marks.filter(r=>r.rollNo!==rollNo);
+    DB.labs=DB.labs.filter(r=>r.rollNo!==rollNo);
+    saveDB(); renderManage(); renderMarksTable(); renderLabTable();
+    toast('Student deleted','err');
+  }
+}
+function wipeAll() {
+  if(confirm('⚠ Delete ALL student data permanently?')){
+    DB={marks:[],labs:[]}; saveDB();
+    renderMarksTable(); renderLabTable(); renderManage();
+    toast('All data wiped','err');
+  }
+}
+
+// ─── EXPORT/IMPORT ────────────────────────────────
+function exportData() {
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=`srmu_data_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); toast('✅ Exported successfully!','ok');
+}
+function importJSON() {
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.onchange=e=>processFile(e.target.files[0]); inp.click();
+}
+function dlTemplate() {
+  const csv=`rollNo,name,subject,dit1,midterm,dit2,innovativeDit,ta1,ta2\n202410101360128,Student Name,Subject,20,24,19,8,4,5\n`;
+  const b=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='srmu_template.csv'; a.click(); toast('✅ Template downloaded','ok');
+}
+
+// ─── CHART HELPERS ────────────────────────────────
+function kill(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
+function darkTip() { return {backgroundColor:'#262626',titleColor:'#f4f4f4',bodyColor:'#a8a8a8',borderColor:'#525252',borderWidth:1}; }
+function chartScales() {
+  return {
+    x:{ticks:{color:'#525252',font:{size:10}},grid:{color:'#333333'}},
+    y:{ticks:{color:'#525252',font:{size:10}},grid:{color:'#333333'},beginAtZero:true}
+  };
+}
+function barOpts(ylabel='',max=null) {
+  return {responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:false},tooltip:darkTip()},
+    scales:{...chartScales(),y:{...chartScales().y,...(max?{max}:{})}}};
+}
+function lineOpts(ylabel='') {
+  return {responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:true,labels:{color:'#a8a8a8',font:{size:10},boxWidth:10}},tooltip:darkTip()},
+    scales:chartScales()};
+}
+
+// ─── TOAST ────────────────────────────────────────
+function toast(msg, type='ok') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast show ${type}`;
+  setTimeout(()=>t.className='toast',3200);
+}
+</script>
+</body>
+</html>
